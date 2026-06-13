@@ -10,7 +10,7 @@ export default function Page() {
     <>
       <title>{`Blog - ${CONFIG.appName}`}</title>
 
-      <BlogView posts={_posts} />
+      <BlogView posts={[]}  />
     </>
   );
 }

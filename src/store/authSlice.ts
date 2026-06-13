@@ -1,133 +1,133 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-// ----------------------------------------------------------------------
 
 const API_BASE = 'http://192.168.1.13:5001/api/v1/admin';
-const WEB_API_BASE = 'http://192.168.1.13:5001/api/v1/admin';
 
-export interface AdminUser {
+export interface ProfileUser {
   _id: string;
   name: string;
   email: string;
   role: string;
-}
-
-export interface ProfileUser {
-  _id: string;
-  username: string;
-  email: string;
-  role: string;
+  isSuperAdmin: boolean;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface AuthState {
-  user: AdminUser | null;
+interface AuthState {
   token: string | null;
-  loading: boolean;
-  error: string | null;
   profile: ProfileUser | null;
   profileLoading: boolean;
-  profileError: string | null;
+  error: string | null;
+   loading: boolean;
+  
+  
 }
 
-const initialState: AuthState = {
-  user: JSON.parse(localStorage.getItem('admin_user') || 'null'),
+const initialState: any = {
   token: localStorage.getItem('admin_token'),
-  loading: false,
-  error: null,
   profile: null,
   profileLoading: false,
-  profileError: null,
+  error: null,
 };
-
-// ── Thunks ──
 
 export const loginAdmin = createAsyncThunk(
   'auth/loginAdmin',
-  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  async (
+    {
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
-      const res:any = await axios.post(`${API_BASE}/auth/login`, credentials);
-      console.log(res,"Response")
-      return res.data;
-    } catch (err: any) {
+      const response = await axios.post(
+        `${API_BASE}/auth/login`,
+        {
+          email,
+          password,
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
       return rejectWithValue(
-        err?.response?.data?.message || err?.message || 'Login failed'
+        error.response?.data?.message ||
+          error.message ||
+          'Login failed'
       );
     }
   }
 );
 
-export const fetchAdminProfile = createAsyncThunk(
-  'auth/fetchAdminProfile',
-  async (_, { getState, rejectWithValue }) => {
-    try {
-      const state = getState() as { auth: AuthState };
-      const token = state.auth.token;
-      const res = await axios.get(`${WEB_API_BASE}/auth/profile`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      return res.data.user as ProfileUser;
-    } catch (err: any) {
-      return rejectWithValue(
-        err?.response?.data?.message || err?.message || 'Failed to load profile'
-      );
-    }
+// 1. Fetch Profile
+export const fetchAdminProfile = createAsyncThunk('auth/fetchAdminProfile', async (_, { getState, rejectWithValue }) => {
+  try {
+    const state = getState() as { auth: AuthState };
+    const res = await axios.get(`${API_BASE}/auth/profile`, {
+      headers: { Authorization: `Bearer ${state.auth.token}` },
+    });
+    return res.data.data; // Path: res.data.data
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Failed to fetch');
   }
-);
-// ── Slice ──
+});
+
+// 2. Update Profile (ID Based)
+export const updateAdminProfile = createAsyncThunk('auth/updateAdminProfile', async ({ id, data }: { id: string; data: any }, { getState, rejectWithValue }) => {
+  try {
+    const state = getState() as { auth: AuthState };
+    const res = await axios.put(`${API_BASE}/profile/${id}`, data, {
+      headers: { Authorization: `Bearer ${state.auth.token}` },
+    });
+    return res.data.data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Update failed');
+  }
+});
+
+// 3. Delete Profile (ID Based)
+export const deleteAdminProfile = createAsyncThunk('auth/deleteAdminProfile', async (id: string, { getState, rejectWithValue }) => {
+  try {
+    const state = getState() as { auth: AuthState };
+    await axios.delete(`${API_BASE}/profile/${id}`, {
+      headers: { Authorization: `Bearer ${state.auth.token}` },
+    });
+    return id;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || 'Delete failed');
+  }
+});
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout(state) {
-      state.user = null;
+    logout: (state) => {
       state.token = null;
-      state.error = null;
       state.profile = null;
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-    },
-    clearError(state) {
-      state.error = null;
-    },
+      localStorage.clear();
+    }
   },
   extraReducers: (builder) => {
     builder
-      // ── login ──
-      .addCase(loginAdmin.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginAdmin.fulfilled, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.token = action.payload.token;
-        state.user = action.payload.user ?? action.payload.data ?? null;
-        localStorage.setItem('admin_token', action.payload.token);
-        localStorage.setItem('admin_user', JSON.stringify(state.user));
-      })
-      .addCase(loginAdmin.rejected, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      // ── fetchAdminProfile ──
-      .addCase(fetchAdminProfile.pending, (state) => {
-        state.profileLoading = true;
-        state.profileError = null;
-      })
-      .addCase(fetchAdminProfile.fulfilled, (state, action: PayloadAction<ProfileUser>) => {
+      .addCase(fetchAdminProfile.pending, (state) => { state.profileLoading = true; })
+      .addCase(fetchAdminProfile.fulfilled, (state, action) => {
         state.profileLoading = false;
         state.profile = action.payload;
       })
-      .addCase(fetchAdminProfile.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(updateAdminProfile.fulfilled, (state, action) => {
+        state.profile = action.payload;
         state.profileLoading = false;
-        state.profileError = action.payload as string;
+      })
+      .addCase(deleteAdminProfile.fulfilled, (state) => {
+        state.profile = null;
       });
-  },
+  }
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout } = authSlice.actions;
 export default authSlice.reducer;
