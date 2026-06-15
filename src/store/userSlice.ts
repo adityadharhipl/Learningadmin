@@ -1,22 +1,28 @@
+
+
+import axios from 'axios'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/v1/web/auth/users';
-
+const API_URL = 'http://localhost:5001/api/v1/admin/auth/users';
 // Thunk to fetch all users
 export const fetchAllUsers = createAsyncThunk(
   'users/fetchAllUsers',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const state = getState() as any;
-      const token = state.auth.token; 
+      const token = localStorage.getItem('admin_token');
+      console.log(token,"token")
+
       const res = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-    
-      return res.data.data; 
+
+      return res.data.data;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to fetch users');
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch users'
+      );
     }
   }
 );
@@ -26,7 +32,7 @@ const userSlice = createSlice({
   initialState: {
     list: [],
     loading: false,
-    error: null,
+    error: null as string | null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -40,7 +46,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchAllUsers.rejected, (state, action) => {
         state.loading = false;
-        // state.error = action.payload as string;
+        state.error = (action.payload as string) || 'Error';
       });
   },
 });

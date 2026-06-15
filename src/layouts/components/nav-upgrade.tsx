@@ -18,7 +18,6 @@ export function NavUpgrade({ sx, ...other }: StackProps) {
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       {...other}
-    >
-    </Box>
+     />
   );
 }

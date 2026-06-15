@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import {
-    Avatar, Box, Button, Card, Chip, CircularProgress, Container, Divider,
-    Grid, Stack, Typography, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, InputAdornment
+    Box, Card, Chip, Grid, Stack, Avatar, Button, Dialog,
+    Divider, Container, TextField, Typography, IconButton, DialogTitle, DialogContent, DialogActions, InputAdornment, CircularProgress
 } from '@mui/material';
+
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { fetchAdminProfile, updateAdminProfile, deleteAdminProfile } from 'src/store/authSlice';
+
 import { Iconify } from 'src/components/iconify';
 
 export default function ProfileView() {

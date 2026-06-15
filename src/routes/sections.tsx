@@ -10,6 +10,8 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
+import ForgotPasswordView from 'src/sections/auth/forgot-password';
+
 import { PrivateRoute } from './components/private-route';
 
 // ----------------------------------------------------------------------
@@ -59,6 +61,10 @@ export const routesSection: RouteObject[] = [
       { path: 'products', element: <ProductsPage /> },
       { path: 'blog', element: <BlogPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      {
+        path: '/forgot-password',
+        element: <ForgotPasswordView />,
+      }
     ],
   },
   {

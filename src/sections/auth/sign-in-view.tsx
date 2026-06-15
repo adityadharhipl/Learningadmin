@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -31,9 +30,13 @@ export function SignInView() {
 
   const from = (location.state as any)?.from?.pathname || '/';
 
-  const handleSignIn = useCallback(async () => {
+  const handleSignIn = useCallback(async (e?: any) => {
+    e?.preventDefault?.();
+
     if (!email || !password) return;
+
     const result = await dispatch(loginAdmin({ email, password }));
+
     if (loginAdmin.fulfilled.match(result)) {
       navigate(from, { replace: true });
     }
@@ -87,6 +90,33 @@ export function SignInView() {
         sx={{ mb: 3 }}
       />
 
+      <Box
+        sx={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          mb: 2,
+        }}
+      >
+        <Typography
+          component="button"
+          onClick={() => navigate('/forgot-password')}
+          sx={{
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            color: 'primary.main',
+            fontSize: 14,
+            textDecoration: 'none',
+            '&:hover': {
+              textDecoration: 'underline',
+            },
+          }}
+        >
+          Forgot Password?
+        </Typography>
+      </Box>
+
       <Button
         fullWidth
         size="large"
@@ -114,12 +144,14 @@ export function SignInView() {
         }}
       >
         <Typography variant="h5">Admin Sign in</Typography>
+
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           Enter your credentials to access the dashboard
         </Typography>
       </Box>
 
       {renderForm}
+
 
       {/* <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
         <Typography
@@ -129,7 +161,7 @@ export function SignInView() {
           SECURE ACCESS
         </Typography>
       </Divider> */}
-{/* 
+      {/* 
       <Box sx={{ gap: 1, display: 'flex', justifyContent: 'center' }}>
         <IconButton color="inherit">
           <Iconify width={22} icon="socials:google" />

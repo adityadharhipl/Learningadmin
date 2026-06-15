@@ -4,17 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useAppSelector } from 'src/store/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useAppSelector } from 'src/store/hooks'; // To get token
 
-import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { TableNoData } from '../table-no-data';
@@ -38,90 +36,90 @@ export function UserView() {
 
   // 1. Fetch Data from API
   const fetchUsers = useCallback(async () => {
-  const authToken = token || localStorage.getItem('admin_token');
+    const authToken = token || localStorage.getItem('admin_token');
 
-  if (!authToken) {
-    console.error('No auth token found');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    console.log('Using Token:', authToken);
-
-    const res = await axios.get(
-      'http://localhost:5001/api/v1/admin/auth/allusers',
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    console.log('API Response:', res.data);
-
-    const formattedUsers = (res.data.data || []).map((user: any) => ({
-      id: user._id ?? user.id,
-      name:
-        user.name ||
-        [user.firstName, user.lastName]
-          .filter(Boolean)
-          .join(' ')
-          .trim() ||
-        user.fullName ||
-        user.displayName ||
-        'Unknown User',
-
-      email: user.email ?? '—',
-
-      role:
-        user.role ||
-        (Array.isArray(user.roles)
-          ? user.roles.join(', ')
-          : 'User'),
-
-      status:
-        user.status ??
-        (user.isActive
-          ? 'active'
-          : user.isDisabled
-          ? 'banned'
-          : 'active'),
-
-      avatarUrl:
-        user.avatarUrl ??
-        user.photoURL ??
-        '/assets/images/avatar/avatar-1.webp',
-
-      isVerified: user.isVerified ?? false,
-    }));
-
-    setUsers(formattedUsers);
-  } catch (error: any) {
-    console.error('========== API ERROR ==========');
-    console.error('Status:', error.response?.status);
-    console.error('Response:', error.response?.data);
-    console.error('Headers Sent:', error.config?.headers);
-    console.error('Full Error:', error);
-
-    if (error.response?.status === 401) {
-      console.error('Unauthorized - Invalid token or backend rejected token');
+    if (!authToken) {
+      console.error('No auth token found');
+      setLoading(false);
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
 
-useEffect(() => {
-  const authToken = token || localStorage.getItem('admin_token');
+    try {
+      setLoading(true);
 
-  if (authToken) {
-    fetchUsers();
-  }
-}, [token, fetchUsers]);
+      console.log('Using Token:', authToken);
+
+      const res = await axios.get(
+        'http://localhost:5001/api/v1/admin/auth/allusers',
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('API Response:', res.data);
+
+      const formattedUsers = (res.data.data || []).map((user: any) => ({
+        id: user._id ?? user.id,
+        name:
+          user.name ||
+          [user.firstName, user.lastName]
+            .filter(Boolean)
+            .join(' ')
+            .trim() ||
+          user.fullName ||
+          user.displayName ||
+          'Unknown User',
+
+        email: user.email ?? '—',
+
+        role:
+          user.role ||
+          (Array.isArray(user.roles)
+            ? user.roles.join(', ')
+            : 'User'),
+
+        status:
+          user.status ??
+          (user.isActive
+            ? 'active'
+            : user.isDisabled
+              ? 'banned'
+              : 'active'),
+
+        avatarUrl:
+          user.avatarUrl ??
+          user.photoURL ??
+          '/assets/images/avatar/avatar-1.webp',
+
+        isVerified: user.isVerified ?? false,
+      }));
+
+      setUsers(formattedUsers);
+    } catch (error: any) {
+      console.error('========== API ERROR ==========');
+      console.error('Status:', error.response?.status);
+      console.error('Response:', error.response?.data);
+      console.error('Headers Sent:', error.config?.headers);
+      console.error('Full Error:', error);
+
+      if (error.response?.status === 401) {
+        console.error('Unauthorized - Invalid token or backend rejected token');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const authToken = token || localStorage.getItem('admin_token');
+
+    if (authToken) {
+      fetchUsers();
+    }
+  }, [token, fetchUsers]);
 
   useEffect(() => {
     fetchUsers();
@@ -137,7 +135,7 @@ useEffect(() => {
   const notFound = !dataFiltered.length && !!filterName;
 
   console.log('Redux Token:', token);
-console.log('LocalStorage Token:', localStorage.getItem('admin_token'));
+  console.log('LocalStorage Token:', localStorage.getItem('admin_token'));
 
   return (
     <DashboardContent>
